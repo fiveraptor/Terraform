@@ -7,6 +7,10 @@ terraform {
   }
 }
 
+variable "hcloud_token" {
+  sensitive = true # Requires terraform >= 0.14
+}
+
 # Create a new SSH key
 resource "hcloud_ssh_key" "default" {
   name = "station"
@@ -16,7 +20,7 @@ resource "hcloud_ssh_key" "default" {
 
 provider "hcloud" {
   # Configuration options
-  token = ""
+  token = var.hcloud_token
 }
 
 
