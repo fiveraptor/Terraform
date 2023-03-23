@@ -8,7 +8,12 @@ terraform {
 }
 
 variable "hcloud_token" {
-  sensitive = true # Requires terraform >= 0.14
+  sensitive = true
+}
+
+provider "hcloud" {
+  # Configuration options
+  token = var.hcloud_token
 }
 
 # Create a new SSH key
@@ -18,38 +23,30 @@ resource "hcloud_ssh_key" "default" {
 }
 
 
-provider "hcloud" {
-  # Configuration options
-  token = var.hcloud_token
-}
-
-
+# Create node1 with following options
 resource "hcloud_server" "node1" {
   name = "node1"
   image = "debian-11"
   server_type = "cx11"
   location = "nbg1"
-  
   ssh_keys  = [
   "station"
   ]
-  
     public_net {
     ipv4_enabled = true
     ipv6_enabled = true
   }
 }
 
+# Create node2 with following options
 resource "hcloud_server" "node2" {
   name = "node2"
   image = "debian-11"
   server_type = "cx11"
   location = "nbg1"
-  
   ssh_keys  = [
   "station"
   ]
-  
     public_net {
     ipv4_enabled = true
     ipv6_enabled = true
