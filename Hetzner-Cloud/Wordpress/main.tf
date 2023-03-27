@@ -23,33 +23,9 @@ resource "hcloud_ssh_key" "default" {
   public_key = file("C:/Users/joris/.ssh/id_rsa.pub")
 }
 
-#Provisioning wird eingeleitet mit ein paar Details
-resource "null_resource" "provision" {
-  connection {
-    type     = "ssh"
-    user     = "root"
-    password = ""
-    private_key = file("~/.ssh/id_rsa")
-    host     = hcloud_server.debian.ipv4_address
-  }
 
-  #Das init.sh Script auf die VM kopieren
-  provisioner "file" {
-    source  = "init.sh"
-    destination = "/tmp/init.sh"
-  }
-
-  #Das init.sh script auf der VM ausführen
-  provisioner "remote-exec" {
-    inline = [
-      "chmod +x /tmp/init.sh",
-      "/tmp/init.sh"
-    ]
-  }
-}
-
-#Webserver Server erstellen mit folgenden Details
-resource "hcloud_server" "debian" {
+#Wordpress Server erstellen mit folgenden Details
+resource "hcloud_server" "wordpress" {
   name = "Wordpress"
   image = "debian-11"
   server_type = "cx11"
@@ -62,10 +38,45 @@ resource "hcloud_server" "debian" {
     ipv6_enabled = true
   }
 
+  connection {
+    type     = "ssh"
+    user     = "root"
+    password = ""
+    private_key = file("~/.ssh/id_rsa")
+    host     = hcloud_server.wordpress.ipv4_address
+  }
+
+  #Das init.sh Script auf die VM kopieren
+  provisioner "file" {
+    source  = "scripts/init.sh"
+    destination = "/tmp/init.sh"
+  }
+
+    #Das init.sh script auf der VM ausführen
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/init.sh",
+      "/tmp/init.sh"
+    ]
+  }
+
+  provisioner "file" {
+  source  = "scripts/wordpress-setup.sh"
+  destination = "/tmp/wordpress-setup.sh"
+  }
+
+  #Das init.sh script auf der VM ausführen
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/wordpress-setup.sh",
+      "/tmp/wordpress-setup.sh"
+    ]
+  }
 }
 
+
 #MySQL Server erstellen mit folgenden Details
-resource "hcloud_server" "debian" {
+resource "hcloud_server" "mysql" {
   name = "MySQL"
   image = "debian-11"
   server_type = "cx11"
@@ -78,5 +89,38 @@ resource "hcloud_server" "debian" {
     ipv6_enabled = true
   }
 
-}
+  connection {
+    type     = "ssh"
+    user     = "root"
+    password = ""
+    private_key = file("~/.ssh/id_rsa")
+    host     = hcloud_server.mysql.ipv4_address
+  }
 
+  #Das init.sh Script auf die VM kopieren
+  provisioner "file" {
+    source  = "scripts/init.sh"
+    destination = "/tmp/init.sh"
+  }
+
+    #Das init.sh script auf der VM ausführen
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/init.sh",
+      "/tmp/init.sh"
+    ]
+  }
+
+  provisioner "file" {
+  source  = "scripts/mysql-setup.sh"
+  destination = "/tmp/mysql-setup.sh"
+  }
+
+  #Das init.sh script auf der VM ausführen
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/mysql-setup.sh",
+      "/tmp/mysql-setup.sh"
+    ]
+  }
+}
