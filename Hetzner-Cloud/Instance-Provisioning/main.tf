@@ -1,3 +1,4 @@
+#Legt den Provider fest. Hier die Hetzner Cloud
 terraform {
   required_providers {
     hcloud = {
@@ -7,22 +8,47 @@ terraform {
   }
 }
 
+#Hier wird die Variable von unserem API Token abgefragt
 variable "hcloud_token" {
   sensitive = true
 }
 
 provider "hcloud" {
-  # Configuration options
   token = var.hcloud_token
 }
 
-# Create a new SSH key
+#SSH Public Key erstellen und anwenden
 resource "hcloud_ssh_key" "default" {
   name = "station"
-  public_key = file("~/.ssh/id_rsa.pub")
+  public_key = file("C:/Users/joris/.ssh/id_rsa.pub")
 }
 
-# Create node1 with following options
+#Provisioning wird eingeleitet mit ein paar Details
+resource "null_resource" "provision" {
+  connection {
+    type     = "ssh"
+    user     = "root"
+    password = ""
+    private_key = file("~/.ssh/id_rsa")
+    host     = hcloud_server.debian.ipv4_address
+  }
+
+  #Das init.sh Script auf die VM kopieren
+  provisioner "file" {
+    source  = "init.sh"
+    destination = "/tmp/init.sh"
+  }
+
+  #Das init.sh script auf der VM ausführen
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/init.sh",
+      "/tmp/init.sh"
+    ]
+  }
+}
+
+#Node1 Server erstellen mit folgenden Details
 resource "hcloud_server" "debian" {
   name = "debian"
   image = "debian-11"
@@ -37,3 +63,5 @@ resource "hcloud_server" "debian" {
   }
 
 }
+
+

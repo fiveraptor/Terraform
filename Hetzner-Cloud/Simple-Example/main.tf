@@ -19,7 +19,7 @@ provider "hcloud" {
 # Create a new SSH key
 resource "hcloud_ssh_key" "default" {
   name = "station"
-  public_key = file("~/.ssh/id_rsa.pub")
+  public_key = file("C:/Users/joris/.ssh/id_rsa.pub")
 }
 
 
