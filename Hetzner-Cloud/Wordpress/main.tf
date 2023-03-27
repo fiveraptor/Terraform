@@ -23,21 +23,8 @@ resource "hcloud_ssh_key" "default" {
   public_key = file("C:/Users/joris/.ssh/id_rsa.pub")
 }
 
-
-#Node1 Server erstellen mit folgenden Details
-resource "hcloud_server" "debian" {
-  name = "debian"
-  image = "debian-11"
-  server_type = "cx11"
-  location = "nbg1"
-  ssh_keys  = [
-  "station"
-  ]
-    public_net {
-    ipv4_enabled = true
-    ipv6_enabled = true
-  }
-
+#Provisioning wird eingeleitet mit ein paar Details
+resource "null_resource" "provision" {
   connection {
     type     = "ssh"
     user     = "root"
@@ -60,3 +47,36 @@ resource "hcloud_server" "debian" {
     ]
   }
 }
+
+#Webserver Server erstellen mit folgenden Details
+resource "hcloud_server" "debian" {
+  name = "Wordpress"
+  image = "debian-11"
+  server_type = "cx11"
+  location = "nbg1"
+  ssh_keys  = [
+  "station"
+  ]
+    public_net {
+    ipv4_enabled = true
+    ipv6_enabled = true
+  }
+
+}
+
+#MySQL Server erstellen mit folgenden Details
+resource "hcloud_server" "debian" {
+  name = "MySQL"
+  image = "debian-11"
+  server_type = "cx11"
+  location = "nbg1"
+  ssh_keys  = [
+  "station"
+  ]
+    public_net {
+    ipv4_enabled = true
+    ipv6_enabled = true
+  }
+
+}
+
