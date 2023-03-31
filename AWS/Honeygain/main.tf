@@ -1,83 +1,32 @@
-variable "awsprops" {
-    type = "map"
-    default = {
-    region = "us-east-1"
-    vpc = "vpc-5234832d"
-    ami = "ami-0c1bea58988a989155"
-    itype = "t2.micro"
-    subnet = "subnet-81896c8e"
-    publicip = true
-    keyname = "myseckey"
-    secgroupname = "IAC-Sec-Group"
-  }
-}
-
 provider "aws" {
-  region = lookup(var.awsprops, "region")
+  region = "eu-central-1"  # Ändern Sie die Region entsprechend Ihren Anforderungen
 }
 
-resource "aws_security_group" "project-iac-sg" {
-  name = lookup(var.awsprops, "secgroupname")
-  description = lookup(var.awsprops, "secgroupname")
-  vpc_id = lookup(var.awsprops, "vpc")
+resource "aws_vpc" "example" {
+  cidr_block = "10.0.0.0/16" # Hier geben Sie den CIDR-Block für den VPC an
 
-  // To Allow SSH Transport
-  ingress {
-    from_port = 22
-    protocol = "tcp"
-    to_port = 22
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  // To Allow Port 80 Transport
-  ingress {
-    from_port = 80
-    protocol = ""
-    to_port = 80
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port       = 0
-    to_port         = 0
-    protocol        = "-1"
-    cidr_blocks     = ["0.0.0.0/0"]
-  }
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-
-resource "aws_instance" "project-iac" {
-  ami = lookup(var.awsprops, "ami")
-  instance_type = lookup(var.awsprops, "itype")
-  subnet_id = lookup(var.awsprops, "subnet") #FFXsubnet2
-  associate_public_ip_address = lookup(var.awsprops, "publicip")
-  key_name = lookup(var.awsprops, "keyname")
-
-
-  vpc_security_group_ids = [
-    aws_security_group.project-iac-sg.id
-  ]
-  root_block_device {
-    delete_on_termination = true
-    iops = 150
-    volume_size = 50
-    volume_type = "gp2"
-  }
   tags = {
-    Name ="SERVER01"
-    Environment = "DEV"
-    OS = "UBUNTU"
-    Managed = "IAC"
+    Name = "example-vpc"
   }
-
-  depends_on = [ aws_security_group.project-iac-sg ]
 }
 
+resource "aws_subnet" "example" {
+  vpc_id     = aws_vpc.example.id  # Hier geben Sie die ID des VPCs an, in dem Sie das Subnetz erstellen möchten
+  cidr_block = "10.0.1.0/24"      # Hier geben Sie den CIDR-Block für das Subnetz an
 
-output "ec2instance" {
-  value = aws_instance.project-iac.public_ip
+  tags = {
+    Name = "example-subnet"
+  }
+}
+
+resource "aws_instance" "example" {
+  ami           = "ami-08f13e5792295e1b2"  # Hier sollten Sie die AMI-ID angeben, die Sie verwenden möchten
+  instance_type = "t2.micro"              # Hier sollten Sie den gewünschten Instanztyp angeben
+  subnet_id     = aws_subnet.example.id  # Hier geben Sie die ID des Subnetzes an
+
+  count = 2  # Legt die Anzahl der Instanzen fest, die bereitgestellt werden sollen
+
+  tags = {
+    Name = "example-instance"  # Ändern Sie den Namen entsprechend Ihren Anforderungen
+  }
 }
