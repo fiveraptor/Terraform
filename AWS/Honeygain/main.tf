@@ -25,21 +25,37 @@ resource "aws_security_group" "web_server_sg" {
   }
 }
 
-resource "aws_instance" "example" {
+resource "aws_instance" "honeygain" {
   ami           = "ami-08f13e5792295e1b2"
   instance_type = "t2.micro"
-  count         = 3
+  count         = 10
   associate_public_ip_address = true
   subnet_id = "subnet-0c178e33867e1670e"
+  key_name = "honeygain" # Use the honeygain key pair
   vpc_security_group_ids = [aws_security_group.web_server_sg.id]
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo apt-get update
-              sudo apt-get install -y apache2
-              echo "root:yxc_2023" | sudo chpasswd
-              EOF
+user_data = <<-EOF
+            #!/bin/bash
+            apt-get update
+            apt-get install -y apache2
+            echo "root:yxc_2023" | chpasswd
+            # Install Docker
+            apt-get update
+            apt-get install -y apt-transport-https ca-certificates curl gnupg2 software-properties-common
+            curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+            add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+            apt-get update
+            apt-get install -y docker-ce docker-ce-cli containerd.io
+            # Add user and give Docker permission
+            useradd -m honeygain-user
+            usermod -aG docker honeygain-user
+            # Switch to honeygain-user and execute Docker command
+            sudo -i -u honeygain-user bash << EOF2
+            docker run honeygain/honeygain -tou-accept -email <EMAIL> -pass <PASSWORD> -device docker${count.index}
+            EOF2
+            EOF
+
 
   tags = {
-    Name = "example-instance-${count.index + 1}"
+    Name = "honeygain-${count.index + 1}"
   }
 }
