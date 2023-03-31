@@ -1,32 +1,45 @@
 provider "aws" {
-  region = "eu-central-1"  # Ändern Sie die Region entsprechend Ihren Anforderungen
+  region = "eu-central-1"
 }
 
-resource "aws_vpc" "example" {
-  cidr_block = "10.0.0.0/16" # Hier geben Sie den CIDR-Block für den VPC an
-
-  tags = {
-    Name = "example-vpc"
+resource "aws_security_group" "web_server_sg" {
+  name_prefix = "web-server-sg"
+  vpc_id = "vpc-0bb73809d061191b1"
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
-}
-
-resource "aws_subnet" "example" {
-  vpc_id     = aws_vpc.example.id  # Hier geben Sie die ID des VPCs an, in dem Sie das Subnetz erstellen möchten
-  cidr_block = "10.0.1.0/24"      # Hier geben Sie den CIDR-Block für das Subnetz an
-
-  tags = {
-    Name = "example-subnet"
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 
 resource "aws_instance" "example" {
-  ami           = "ami-08f13e5792295e1b2"  # Hier sollten Sie die AMI-ID angeben, die Sie verwenden möchten
-  instance_type = "t2.micro"              # Hier sollten Sie den gewünschten Instanztyp angeben
-  subnet_id     = aws_subnet.example.id  # Hier geben Sie die ID des Subnetzes an
-
-  count = 2  # Legt die Anzahl der Instanzen fest, die bereitgestellt werden sollen
+  ami           = "ami-08f13e5792295e1b2"
+  instance_type = "t2.micro"
+  count         = 3
+  associate_public_ip_address = true
+  subnet_id = "subnet-0c178e33867e1670e"
+  vpc_security_group_ids = [aws_security_group.web_server_sg.id]
+  user_data = <<-EOF
+              #!/bin/bash
+              sudo apt-get update
+              sudo apt-get install -y apache2
+              echo "root:yxc_2023" | sudo chpasswd
+              EOF
 
   tags = {
-    Name = "example-instance"  # Ändern Sie den Namen entsprechend Ihren Anforderungen
+    Name = "example-instance-${count.index + 1}"
   }
 }
