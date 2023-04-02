@@ -28,7 +28,7 @@ resource "aws_security_group" "web_server_sg" {
 resource "aws_instance" "honeygain" {
   ami           = "ami-08f13e5792295e1b2"
   instance_type = "t2.micro"
-  count         = 10
+  count         = 5
   associate_public_ip_address = true
   subnet_id = "subnet-0c178e33867e1670e"
   key_name = "honeygain" # Use the honeygain key pair
@@ -50,7 +50,7 @@ user_data = <<-EOF
             usermod -aG docker honeygain-user
             # Switch to honeygain-user and execute Docker command
             sudo -i -u honeygain-user bash << EOF2
-            docker run honeygain/honeygain -tou-accept -email <EMAIL> -pass <PASSWORD> -device docker${count.index}
+            docker run honeygain/honeygain -tou-accept -email email -pass password -device docker${count.index}
             EOF2
             EOF
 
